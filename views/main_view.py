@@ -2,9 +2,13 @@ from controllers.sample_controller import SampleController
 from controllers.order_controller import OrderController
 from controllers.production_controller import ProductionController
 from controllers.release_controller import ReleaseController
+from repositories.order_repository import OrderRepository
 from views.common import header, section, success, error, ask, menu_item
 from views.sample_view import SampleView
 from views.order_view import OrderView
+from views.monitoring_view import MonitoringView
+from views.production_view import ProductionView
+from views.release_view import ReleaseView
 
 
 class MainView:
@@ -14,10 +18,14 @@ class MainView:
         order_ctrl: OrderController,
         production_ctrl: ProductionController,
         release_ctrl: ReleaseController,
+        order_repo: OrderRepository,
     ):
-        self._sample_ctrl = sample_ctrl
-        self._sample_view = SampleView(sample_ctrl)
-        self._order_view  = OrderView(order_ctrl)
+        self._sample_ctrl      = sample_ctrl
+        self._sample_view      = SampleView(sample_ctrl)
+        self._order_view       = OrderView(order_ctrl)
+        self._monitoring_view  = MonitoringView(sample_ctrl, order_repo)
+        self._production_view  = ProductionView(production_ctrl)
+        self._release_view     = ReleaseView(release_ctrl)
 
     def run(self):
         while True:
@@ -28,11 +36,11 @@ class MainView:
             elif choice == "2":
                 self._order_view.menu()
             elif choice == "3":
-                print("  [모니터링] Phase 9에서 구현 예정")
+                self._monitoring_view.show()
             elif choice == "4":
-                print("  [출고 처리] Phase 9에서 구현 예정")
+                self._release_view.show()
             elif choice == "5":
-                print("  [생산 라인] Phase 9에서 구현 예정")
+                self._production_view.show()
             elif choice == "0":
                 success("시스템을 종료합니다.")
                 break

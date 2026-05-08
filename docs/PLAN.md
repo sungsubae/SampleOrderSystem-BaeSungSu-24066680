@@ -254,9 +254,9 @@ View는 입력 수집과 결과 출력만 담당한다. 비즈니스 로직은 C
 
 ### 체크리스트
 
-- [ ] `main_view.py` Phase 9 View 연결 (`order_repo` 파라미터 추가)
-- [ ] `main.py` 진입점 구현
-- [ ] `tests/test_views.py` `TestMainView` 7개 케이스 추가 및 통과
+- [x] `main_view.py` Phase 9 View 연결 (`order_repo` 파라미터 추가)
+- [x] `main.py` 진입점 구현
+- [x] `tests/test_views.py` `TestMainView` 7개 케이스 추가 및 통과
 - [ ] 통합 시나리오 1·2·3 수동 검증 완료
 
 ---
