@@ -45,8 +45,9 @@
 
 ### 구현
 
-- `json_repository.py`: `load(filepath) -> dict`, `save(filepath, data)` (indent=2)
-- 각 Repository는 `json_repository`를 사용해 `data/*.json` 파일을 읽고 씀
+- `json_repository.py`: `load(filepath) -> list`, `save(filepath, data)` (indent=2) — 파일 없을 때 `[]` 반환
+- `base_repository.py`: `find_all` / `find_by_id` / `save(upsert)` 공통 추상 베이스 클래스
+- `SampleRepository` / `OrderRepository`는 `BaseRepository` 상속, 직렬화 메서드(`_to_dict`, `_from_dict`, `_id_of`)만 구현
 - 변경 발생 즉시 저장
 
 ### 체크리스트
