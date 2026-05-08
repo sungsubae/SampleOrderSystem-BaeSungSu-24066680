@@ -19,8 +19,8 @@ def repos(tmp_path):
 
 @pytest.fixture
 def release_ctrl(repos):
-    _, order_repo, _ = repos
-    return ReleaseController(order_repo=order_repo)
+    sample_repo, order_repo, _ = repos
+    return ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def confirmed_order(repos):
     )
     order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
     order_ctrl.approve(order.order_id)
-    return order, ReleaseController(order_repo=order_repo)
+    return order, ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
 
 
 # ── list_confirmed ────────────────────────────────────────────
@@ -75,6 +75,14 @@ class TestRelease:
             production_repo=production_repo,
         )
         order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
-        ctrl = ReleaseController(order_repo=order_repo)
+        ctrl = ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
         with pytest.raises(ValueError):
             ctrl.release(order.order_id)
+
+    def test_release_decrements_stock(self, confirmed_order, repos):
+        sample_repo, _, _ = repos
+        order, ctrl = confirmed_order
+        stock_before = sample_repo.find_by_id("S001").stock  # 100
+        ctrl.release(order.order_id)
+        stock_after = sample_repo.find_by_id("S001").stock
+        assert stock_after == stock_before - order.quantity  # 100 - 5 = 95
