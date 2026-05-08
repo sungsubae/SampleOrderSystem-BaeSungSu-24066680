@@ -104,8 +104,8 @@
 
 ### 체크리스트
 
-- [ ] `test_order_controller.py` 접수·거절 테스트 케이스 작성
-- [ ] `OrderController` 접수·거절 구현 후 테스트 통과 확인
+- [x] `test_order_controller.py` 접수·거절 테스트 케이스 작성
+- [x] `OrderController` 접수·거절 구현 후 테스트 통과 확인
 
 ---
 
