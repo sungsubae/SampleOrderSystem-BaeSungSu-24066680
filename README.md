@@ -24,7 +24,6 @@ RESERVED ──(승인, 재고 충분)──► CONFIRMED ──► RELEASE
 
 - 승인 시 재고가 충분하면 즉시 재고를 차감하고 CONFIRMED로 전환합니다.
 - 재고가 부족하면 생산 큐(FIFO)에 등록하고 PRODUCING으로 전환합니다.
-- 생산 완료 시 재고가 증가하고 CONFIRMED로 전환됩니다.
 - REJECTED 주문은 모니터링에서 제외됩니다.
 
 ---
