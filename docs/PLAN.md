@@ -193,21 +193,25 @@ total_time = sample.avg_production_time * actual
 
 ## Phase 8 — View (메인·시료·주문)
 
-**대상 파일:** `views/main_view.py`, `views/sample_view.py`, `views/order_view.py`
+**대상 파일:** `views/common.py`, `views/main_view.py`, `views/sample_view.py`, `views/order_view.py`  
+**테스트 파일:** `tests/test_views.py` (`monkeypatch` + `capsys` 활용, pexpect는 Windows 미지원)
 
 View는 입력 수집과 결과 출력만 담당한다. 비즈니스 로직은 Controller에 위임한다.
 
 ### 구현
 
+- `common.py`: 공통 출력 유틸 (`header`, `section`, `success`, `error`, `divider`, `ask`, `ask_int`, `ask_float`, `menu_item`) — colorama 활용
 - `main_view.py`: 메인 메뉴 5개 항목 출력, 전체 시료 요약 표시
 - `sample_view.py`: 시료 등록 입력 폼, 목록 테이블(재고 포함), 검색 결과
 - `order_view.py`: 주문 접수 입력 폼, `RESERVED` 목록, 승인/거절 선택
 
 ### 체크리스트
 
-- [ ] `main_view.py` 메뉴 루프 구현
-- [ ] `sample_view.py` 구현
-- [ ] `order_view.py` 구현
+- [x] `views/common.py` 공통 유틸 구현
+- [x] `main_view.py` 메뉴 루프 구현
+- [x] `sample_view.py` 구현
+- [x] `order_view.py` 구현
+- [x] `tests/test_views.py` 작성 및 통과
 
 ---
 
