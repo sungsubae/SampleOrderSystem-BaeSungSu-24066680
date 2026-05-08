@@ -51,8 +51,8 @@
 
 ### 체크리스트
 
-- [ ] `test_repositories.py` 테스트 케이스 작성
-- [ ] `repositories/` 구현 후 테스트 통과 확인
+- [x] `test_repositories.py` 테스트 케이스 작성
+- [x] `repositories/` 구현 후 테스트 통과 확인
 
 ---
 
