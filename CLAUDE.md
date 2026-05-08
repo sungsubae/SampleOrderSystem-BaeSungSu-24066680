@@ -40,6 +40,7 @@ python tools/monitor.py
 | [`docs/SPEC.md`](docs/SPEC.md) | 시스템 배경, 역할, 주문 상태 흐름, 기능별 요구사항 원문 |
 | [`docs/PRD.md`](docs/PRD.md) | SPEC 기반의 구조화된 제품 요구사항 — 상태 전이 다이어그램, 생산량 계산 공식, 재고 상태 기준 등 포함 |
 | [`docs/PLAN.md`](docs/PLAN.md) | TDD 기반 단계별 구현 계획 — Phase 1~12, 각 Phase별 테스트 케이스 및 구현 체크리스트 포함 |
+| `docs/designs/phase{N}.md` | 각 Phase의 세부 설계 — 클래스 다이어그램, 필드 명세, 테스트 코드, 구현 코드 포함. Phase 진행 전 해당 문서를 먼저 확인한다. |
 
 ## 아키텍처
 
