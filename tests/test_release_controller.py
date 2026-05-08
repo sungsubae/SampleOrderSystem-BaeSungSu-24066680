@@ -19,8 +19,8 @@ def repos(tmp_path):
 
 @pytest.fixture
 def release_ctrl(repos):
-    sample_repo, order_repo, _ = repos
-    return ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
+    _, order_repo, _ = repos
+    return ReleaseController(order_repo=order_repo)
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def confirmed_order(repos):
     )
     order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
     order_ctrl.approve(order.order_id)
-    return order, ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
+    return order, ReleaseController(order_repo=order_repo)
 
 
 # ── list_confirmed ────────────────────────────────────────────
@@ -75,14 +75,15 @@ class TestRelease:
             production_repo=production_repo,
         )
         order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
-        ctrl = ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
+        ctrl = ReleaseController(order_repo=order_repo)
         with pytest.raises(ValueError):
             ctrl.release(order.order_id)
 
-    def test_release_decrements_stock(self, confirmed_order, repos):
+    def test_release_does_not_change_stock(self, confirmed_order, repos):
+        """CONFIRMED 시 이미 재고가 차감되었으므로 RELEASE 시 추가 차감 없음."""
         sample_repo, _, _ = repos
         order, ctrl = confirmed_order
-        stock_before = sample_repo.find_by_id("S001").stock  # 100
+        stock_after_confirm = sample_repo.find_by_id("S001").stock  # approve 시 이미 차감
         ctrl.release(order.order_id)
-        stock_after = sample_repo.find_by_id("S001").stock
-        assert stock_after == stock_before - order.quantity  # 100 - 5 = 95
+        stock_after_release = sample_repo.find_by_id("S001").stock
+        assert stock_after_release == stock_after_confirm

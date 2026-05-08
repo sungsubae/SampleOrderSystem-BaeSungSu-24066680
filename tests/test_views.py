@@ -176,7 +176,7 @@ def ctrls(full_repos):
     sample_ctrl     = SampleController(sample_repo)
     order_ctrl      = OrderController(sample_repo, order_repo, production_repo)
     production_ctrl = ProductionController(production_repo, order_repo, sample_repo)
-    release_ctrl    = ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
+    release_ctrl    = ReleaseController(order_repo=order_repo)
     return sample_ctrl, order_ctrl, production_ctrl, release_ctrl, order_repo
 
 

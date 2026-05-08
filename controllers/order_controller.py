@@ -38,6 +38,8 @@ class OrderController:
         sample = self._sample_repo.find_by_id(order.sample_id)
 
         if sample.stock >= order.quantity:
+            sample.stock -= order.quantity
+            self._sample_repo.save(sample)
             order.status = OrderStatus.CONFIRMED
             self._order_repo.save(order)
         else:

@@ -22,7 +22,7 @@ def build_main_view() -> MainView:
     sample_ctrl     = SampleController(sample_repo)
     order_ctrl      = OrderController(sample_repo, order_repo, production_repo)
     production_ctrl = ProductionController(production_repo, order_repo, sample_repo)
-    release_ctrl    = ReleaseController(order_repo=order_repo, sample_repo=sample_repo)
+    release_ctrl    = ReleaseController(order_repo=order_repo)
 
     return MainView(sample_ctrl, order_ctrl, production_ctrl, release_ctrl, order_repo)
 

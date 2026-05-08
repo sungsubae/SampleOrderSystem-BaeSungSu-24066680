@@ -10,7 +10,7 @@
 | # | 항목 | 파일 | 심각도 | 상태 |
 |---|------|------|--------|------|
 | 1 | 모니터링 주문 현황 — 건수만 출력, 목록 누락 | `views/monitoring_view.py:20-23` | **필수** | ✅ 수정 완료 |
-| 2 | 출고(RELEASE) 시 재고 미차감 | `controllers/release_controller.py:18` | 필수 | ✅ 수정 완료 |
+| 2 | 재고 차감 시점 오류 (중복 승인 가능) | `controllers/order_controller.py`, `release_controller.py` | 필수 | ✅ 수정 완료 |
 
 ---
 
