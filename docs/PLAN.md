@@ -293,8 +293,9 @@ python tools/monitor.py
 
 ### 체크리스트
 
-- [ ] `data/*.json` 직접 읽기 구현
-- [ ] 시료·주문·생산 큐 포맷 출력 구현
+- [x] `data/*.json` 직접 읽기 구현
+- [x] 시료·주문·생산 큐 포맷 출력 구현
+- [x] `tests/test_monitor.py` 작성 및 통과
 
 ---
 
