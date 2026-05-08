@@ -12,6 +12,7 @@ from views.order_view import OrderView
 from views.monitoring_view import MonitoringView
 from views.production_view import ProductionView
 from views.release_view import ReleaseView
+from views.main_view import MainView
 
 
 @pytest.fixture
@@ -308,3 +309,58 @@ class TestReleaseView:
         OrderView(order_ctrl).menu()
         out = capsys.readouterr().out
         assert "✖" in out
+
+
+# ── MainView ──────────────────────────────────────────────────
+class TestMainView:
+    def _make_view(self, ctrls):
+        sample_ctrl, order_ctrl, production_ctrl, release_ctrl, order_repo = ctrls
+        return MainView(sample_ctrl, order_ctrl, production_ctrl, release_ctrl, order_repo)
+
+    def test_menu_routes_to_sample_view(self, monkeypatch, capsys, ctrls):
+        inputs = iter(["1", "0", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        self._make_view(ctrls).run()
+        out = capsys.readouterr().out
+        assert "시료 관리" in out
+
+    def test_menu_routes_to_order_view(self, monkeypatch, capsys, ctrls):
+        inputs = iter(["2", "0", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        self._make_view(ctrls).run()
+        out = capsys.readouterr().out
+        assert "주문 관리" in out
+
+    def test_menu_routes_to_monitoring_view(self, monkeypatch, capsys, ctrls):
+        inputs = iter(["3", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        self._make_view(ctrls).run()
+        out = capsys.readouterr().out
+        assert "모니터링" in out
+
+    def test_menu_routes_to_release_view(self, monkeypatch, capsys, ctrls):
+        inputs = iter(["4", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        self._make_view(ctrls).run()
+        out = capsys.readouterr().out
+        assert "출고 처리" in out
+
+    def test_menu_routes_to_production_view(self, monkeypatch, capsys, ctrls):
+        inputs = iter(["5", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        self._make_view(ctrls).run()
+        out = capsys.readouterr().out
+        assert "생산 라인" in out
+
+    def test_exit_prints_message(self, monkeypatch, capsys, ctrls):
+        monkeypatch.setattr("builtins.input", lambda _: "0")
+        self._make_view(ctrls).run()
+        out = capsys.readouterr().out
+        assert "종료" in out
+
+    def test_invalid_choice_shows_error(self, monkeypatch, capsys, ctrls):
+        inputs = iter(["9", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        self._make_view(ctrls).run()
+        out = capsys.readouterr().out
+        assert "올바른 메뉴를 선택해주세요" in out
