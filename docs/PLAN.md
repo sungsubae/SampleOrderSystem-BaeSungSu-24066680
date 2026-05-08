@@ -77,8 +77,8 @@
 
 ### 체크리스트
 
-- [ ] `test_sample_controller.py` 테스트 케이스 작성
-- [ ] `SampleController` 구현 후 테스트 통과 확인
+- [x] `test_sample_controller.py` 테스트 케이스 작성
+- [x] `SampleController` 구현 후 테스트 통과 확인
 
 ---
 
