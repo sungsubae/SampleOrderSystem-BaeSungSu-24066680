@@ -1,0 +1,36 @@
+# 보안 / 환경 설정
+.mcp.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# 가상환경
+.venv/
+venv/
+env/
+
+# 테스트 / 커버리지
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 데이터 (런타임 생성)
+data/*.json
+
+# OS
+.DS_Store
+Thumbs.db
