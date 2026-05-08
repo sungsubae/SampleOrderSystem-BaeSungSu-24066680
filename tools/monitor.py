@@ -41,12 +41,15 @@ def print_monitor(data_dir: Path = DATA_DIR) -> None:
         print("  주문이 없습니다.")
     else:
         status_order = ["RESERVED", "PRODUCING", "CONFIRMED", "RELEASE", "REJECTED"]
-        counts = {s: sum(1 for o in orders if o["status"] == s) for s in status_order}
-        print(f"  {'상태':<14} {'건수':>5}")
-        divider()
         for status in status_order:
-            if counts[status] > 0:
-                print(f"  {status:<14} {counts[status]:>5}")
+            group = [o for o in orders if o["status"] == status]
+            print(f"\n  ▶ {status}  ({len(group)}건)")
+            if group:
+                print(f"  {col('주문ID',12)} {col('시료ID',8)} {col('고객명',12)} {'수량':>5}")
+                divider()
+                for o in group:
+                    print(f"  {col(o['order_id'][:8],12)} {col(o['sample_id'],8)} "
+                          f"{col(o['customer'],12)} {o['quantity']:>5}")
 
     # ── 생산 큐 현황 ───────────────────────────────────────
     section(f"생산 큐 현황 ({len(queue)}개)")

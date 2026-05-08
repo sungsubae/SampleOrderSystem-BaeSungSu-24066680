@@ -38,6 +38,14 @@ class TestMonitor:
         assert "CONFIRMED" in out
         assert "PRODUCING" in out
 
+    def test_shows_order_details_in_list(self, capsys, tmp_path):
+        self._setup_data(tmp_path)
+        print_monitor(data_dir=tmp_path)
+        out = capsys.readouterr().out
+        assert "연구소A" in out
+        assert "팹리스B" in out
+        assert "O001" in out or "O001"[:8] in out
+
     def test_shows_production_queue(self, capsys, tmp_path):
         self._setup_data(tmp_path)
         print_monitor(data_dir=tmp_path)
