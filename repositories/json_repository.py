@@ -2,10 +2,10 @@ import json
 from pathlib import Path
 
 
-def load(filepath) -> dict:
+def load(filepath) -> list:
     path = Path(filepath)
     if not path.exists():
-        return {}
+        return []
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 

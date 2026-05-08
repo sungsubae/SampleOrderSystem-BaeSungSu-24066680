@@ -17,10 +17,10 @@ class TestJsonRepository:
         result = load(filepath)
         assert result == data
 
-    def test_load_returns_empty_dict_when_file_not_exists(self, tmp_path):
+    def test_load_returns_empty_list_when_file_not_exists(self, tmp_path):
         filepath = tmp_path / "nonexistent.json"
         result = load(filepath)
-        assert result == {}
+        assert result == []
 
     def test_save_creates_file_with_indent(self, tmp_path):
         filepath = tmp_path / "test.json"
