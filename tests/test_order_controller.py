@@ -1,7 +1,9 @@
+import math
 import pytest
 from controllers.order_controller import OrderController
 from repositories.order_repository import OrderRepository
 from repositories.sample_repository import SampleRepository
+from repositories.production_repository import ProductionRepository
 from models.order import OrderStatus
 from models.sample import Sample
 
@@ -24,6 +26,19 @@ def ctrl_with_sample(repos):
     sample_repo, order_repo = repos
     sample_repo.save(Sample(sample_id="S001", name="AlGaN", avg_production_time=2.0, yield_rate=0.9))
     return OrderController(sample_repo=sample_repo, order_repo=order_repo)
+
+
+@pytest.fixture
+def ctrl_full(tmp_path):
+    sample_repo     = SampleRepository(tmp_path / "samples.json")
+    order_repo      = OrderRepository(tmp_path / "orders.json")
+    production_repo = ProductionRepository(tmp_path / "production_queue.json")
+    sample_repo.save(Sample(sample_id="S001", name="AlGaN", avg_production_time=2.0, yield_rate=0.9))
+    return OrderController(
+        sample_repo=sample_repo,
+        order_repo=order_repo,
+        production_repo=production_repo,
+    )
 
 
 # ── reserve ──────────────────────────────────────────────────
@@ -77,3 +92,60 @@ class TestReject:
     def test_reject_nonexistent_order_raises(self, ctrl):
         with pytest.raises(ValueError):
             ctrl.reject("NONEXISTENT")
+
+
+# ── approve (재고 충분) ───────────────────────────────────────
+class TestApproveWithSufficientStock:
+    def test_status_becomes_confirmed(self, ctrl_full, tmp_path):
+        sample_repo = SampleRepository(tmp_path / "samples.json")
+        sample = sample_repo.find_by_id("S001")
+        sample.stock = 10
+        sample_repo.save(sample)
+        order = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        ctrl_full.approve(order.order_id)
+        updated = ctrl_full._order_repo.find_by_id(order.order_id)
+        assert updated.status == OrderStatus.CONFIRMED
+
+    def test_production_queue_remains_empty(self, ctrl_full, tmp_path):
+        sample_repo = SampleRepository(tmp_path / "samples.json")
+        sample = sample_repo.find_by_id("S001")
+        sample.stock = 10
+        sample_repo.save(sample)
+        order = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        ctrl_full.approve(order.order_id)
+        queue = ctrl_full._production_repo.load()
+        assert queue.is_empty()
+
+
+# ── approve (재고 부족) ───────────────────────────────────────
+class TestApproveWithInsufficientStock:
+    def test_status_becomes_producing(self, ctrl_full):
+        order = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=10)
+        ctrl_full.approve(order.order_id)
+        updated = ctrl_full._order_repo.find_by_id(order.order_id)
+        assert updated.status == OrderStatus.PRODUCING
+
+    def test_production_job_added_to_queue(self, ctrl_full):
+        order = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=10)
+        ctrl_full.approve(order.order_id)
+        queue = ctrl_full._production_repo.load()
+        assert queue.size() == 1
+        assert queue.peek().order_id == order.order_id
+
+    def test_actual_production_calculation(self, ctrl_full):
+        order = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=10)
+        ctrl_full.approve(order.order_id)
+        job = ctrl_full._production_repo.load().peek()
+        expected = math.ceil(10 / (0.9 * 0.9))
+        assert job.actual_production == expected
+
+    def test_total_time_calculation(self, ctrl_full):
+        order = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=10)
+        ctrl_full.approve(order.order_id)
+        job = ctrl_full._production_repo.load().peek()
+        expected_actual = math.ceil(10 / (0.9 * 0.9))
+        assert job.total_time == 2.0 * expected_actual
+
+    def test_approve_nonexistent_order_raises(self, ctrl_full):
+        with pytest.raises(ValueError):
+            ctrl_full.approve("NONEXISTENT")

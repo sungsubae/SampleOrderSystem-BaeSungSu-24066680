@@ -1,7 +1,7 @@
 # 구현 계획 — 반도체 시료 생산주문관리 시스템
 
 > 상세 요구사항은 `docs/SPEC.md` · `docs/PRD.md` 참고  
-> **모든 Phase는 테스트 작성 → 구현 → 통과 확인 순서(TDD)로 진행한다.**
+> **모든 Phase는 테스트 작성 → 구현 → 통과 확인 → 리팩토링(필요 시) 순서(TDD)로 진행한다.**
 
 ---
 
@@ -133,9 +133,9 @@ total_time = sample.avg_production_time * actual
 
 ### 체크리스트
 
-- [ ] 승인 재고 분기 테스트 케이스 작성
-- [ ] 생산량 계산 공식 테스트 케이스 작성
-- [ ] `OrderController.approve` 구현 후 테스트 통과 확인
+- [x] 승인 재고 분기 테스트 케이스 작성
+- [x] 생산량 계산 공식 테스트 케이스 작성
+- [x] `OrderController.approve` 구현 후 테스트 통과 확인
 
 ---
 
