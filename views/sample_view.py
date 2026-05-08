@@ -1,5 +1,5 @@
 from controllers.sample_controller import SampleController
-from views.common import header, section, divider, success, error, ask, ask_float, menu_item
+from views.common import header, section, divider, success, error, ask, ask_float, menu_item, col
 
 
 class SampleView:
@@ -44,10 +44,10 @@ class SampleView:
         if not samples:
             print("  등록된 시료가 없습니다.")
             return
-        print(f"  {'ID':<12} {'이름':<14} {'생산시간':>8}  {'수율':>6}  {'재고':>5}")
+        print(f"  {col('ID',12)} {col('이름',14)} {'생산시간':>8}  {'수율':>6}  {'재고':>5}")
         divider()
         for s in samples:
-            print(f"  {s.sample_id:<12} {s.name:<14} {s.avg_production_time:>6.1f}h  {s.yield_rate*100:>5.1f}%  {s.stock:>5}")
+            print(f"  {col(s.sample_id,12)} {col(s.name,14)} {s.avg_production_time:>6.1f}h  {s.yield_rate*100:>5.1f}%  {s.stock:>5}")
 
     def _search(self):
         header("시료 검색")
@@ -57,7 +57,7 @@ class SampleView:
         if not results:
             print("  검색 결과가 없습니다.")
             return
-        print(f"  {'ID':<12} {'이름':<14} {'재고':>5}")
+        print(f"  {col('ID',12)} {col('이름',14)} {'재고':>5}")
         divider()
         for s in results:
-            print(f"  {s.sample_id:<12} {s.name:<14} {s.stock:>5}")
+            print(f"  {col(s.sample_id,12)} {col(s.name,14)} {s.stock:>5}")

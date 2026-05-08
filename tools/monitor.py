@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from views.common import header, section, divider
+from views.common import header, section, divider, col
 
 DATA_DIR = Path("data")
 
@@ -28,10 +28,10 @@ def print_monitor(data_dir: Path = DATA_DIR) -> None:
     if not samples:
         print("  등록된 시료가 없습니다.")
     else:
-        print(f"  {'ID':<12} {'이름':<14} {'생산시간':>8}  {'수율':>6}  {'재고':>5}")
+        print(f"  {col('ID',12)} {col('이름',14)} {'생산시간':>8}  {'수율':>6}  {'재고':>5}")
         divider()
         for s in samples:
-            print(f"  {s['sample_id']:<12} {s['name']:<14} "
+            print(f"  {col(s['sample_id'],12)} {col(s['name'],14)} "
                   f"{s['avg_production_time']:>6.1f}h  "
                   f"{s['yield_rate']*100:>5.1f}%  {s['stock']:>5}")
 
@@ -53,10 +53,10 @@ def print_monitor(data_dir: Path = DATA_DIR) -> None:
     if not queue:
         print("  대기 중인 작업이 없습니다.")
     else:
-        print(f"  {'순서':<5} {'주문ID':<14} {'시료ID':<10} {'생산수량':>8}  {'예상시간':>8}")
+        print(f"  {col('순서',5)} {col('주문ID',14)} {col('시료ID',10)} {'생산수량':>8}  {'예상시간':>8}")
         divider()
         for i, job in enumerate(queue, 1):
-            print(f"  [{i}]   {job['order_id'][:8]:<14} {job['sample_id']:<10} "
+            print(f"  [{i}]   {col(job['order_id'][:8],14)} {col(job['sample_id'],10)} "
                   f"{job['actual_production']:>8}  {job['total_time']:>7.1f}h")
 
 
