@@ -110,3 +110,8 @@ class TestCompleteJob:
     def test_complete_job_on_empty_queue_raises(self, ctrl):
         with pytest.raises((IndexError, ValueError)):
             ctrl.complete_job("NONEXISTENT")
+
+    def test_complete_job_with_wrong_order_id_raises(self, ctrl_with_producing_order):
+        prod_ctrl, order = ctrl_with_producing_order
+        with pytest.raises(ValueError):
+            prod_ctrl.complete_job("WRONG_ID")

@@ -186,8 +186,8 @@ total_time = sample.avg_production_time * actual
 
 ### 체크리스트
 
-- [ ] `test_release_controller.py` 테스트 케이스 작성
-- [ ] `ReleaseController` 구현 후 테스트 통과 확인
+- [x] `test_release_controller.py` 테스트 케이스 작성
+- [x] `ReleaseController` 구현 후 테스트 통과 확인
 
 ---
 
