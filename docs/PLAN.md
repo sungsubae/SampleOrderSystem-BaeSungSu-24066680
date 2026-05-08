@@ -207,11 +207,11 @@ View는 입력 수집과 결과 출력만 담당한다. 비즈니스 로직은 C
 
 ### 체크리스트
 
-- [ ] `views/common.py` 공통 유틸 구현
-- [ ] `main_view.py` 메뉴 루프 구현
-- [ ] `sample_view.py` 구현
-- [ ] `order_view.py` 구현
-- [ ] `tests/test_views.py` 작성 및 통과
+- [x] `views/common.py` 공통 유틸 구현
+- [x] `main_view.py` 메뉴 루프 구현
+- [x] `sample_view.py` 구현
+- [x] `order_view.py` 구현
+- [x] `tests/test_views.py` 작성 및 통과
 
 ---
 
