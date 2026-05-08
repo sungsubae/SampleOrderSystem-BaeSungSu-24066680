@@ -1,12 +1,17 @@
 import pytest
 from controllers.sample_controller import SampleController
 from controllers.order_controller import OrderController
+from controllers.production_controller import ProductionController
+from controllers.release_controller import ReleaseController
 from repositories.sample_repository import SampleRepository
 from repositories.order_repository import OrderRepository
 from repositories.production_repository import ProductionRepository
 from models.sample import Sample
 from views.sample_view import SampleView
 from views.order_view import OrderView
+from views.monitoring_view import MonitoringView
+from views.production_view import ProductionView
+from views.release_view import ReleaseView
 
 
 @pytest.fixture
@@ -68,6 +73,28 @@ class TestSampleView:
         out = capsys.readouterr().out
         assert "숫자를 입력해주세요" in out
 
+    def test_invalid_menu_choice_shows_error(self, monkeypatch, capsys, sample_ctrl):
+        inputs = iter(["9", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        SampleView(sample_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "올바른 메뉴를 선택해주세요" in out
+
+    def test_list_all_empty_shows_message(self, monkeypatch, capsys, sample_ctrl):
+        inputs = iter(["2", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        SampleView(sample_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "등록된 시료가 없습니다" in out
+
+    def test_search_no_results_shows_message(self, monkeypatch, capsys, sample_ctrl):
+        sample_ctrl.register(sample_id="S001", name="AlGaN", avg_time=2.0, yield_rate=0.9)
+        inputs = iter(["3", "ZZZ", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        SampleView(sample_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "검색 결과가 없습니다" in out
+
 
 # ── OrderView ─────────────────────────────────────────────────
 class TestOrderView:
@@ -99,3 +126,185 @@ class TestOrderView:
         OrderView(order_ctrl).menu()
         out = capsys.readouterr().out
         assert "접수된 주문이 없습니다" in out
+
+    def test_invalid_menu_choice_shows_error(self, monkeypatch, capsys, order_ctrl):
+        inputs = iter(["9", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        OrderView(order_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "올바른 메뉴를 선택해주세요" in out
+
+    def test_reject_order_prints_confirmation(self, monkeypatch, capsys, order_ctrl):
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        inputs = iter(["2", "1", "r", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        OrderView(order_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "✔" in out
+
+    def test_invalid_order_number_shows_error(self, monkeypatch, capsys, order_ctrl):
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        inputs = iter(["2", "99", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        OrderView(order_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "올바른 번호를 선택해주세요" in out
+
+    def test_invalid_action_shows_error(self, monkeypatch, capsys, order_ctrl):
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        inputs = iter(["2", "1", "x", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        OrderView(order_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "올바른 선택이 아닙니다" in out
+
+
+# ── 공통 fixture (Phase 9) ─────────────────────────────────────
+@pytest.fixture
+def full_repos(tmp_path):
+    sample_repo     = SampleRepository(tmp_path / "samples.json")
+    order_repo      = OrderRepository(tmp_path / "orders.json")
+    production_repo = ProductionRepository(tmp_path / "production_queue.json")
+    sample_repo.save(Sample(sample_id="S001", name="AlGaN", avg_production_time=2.0, yield_rate=0.9, stock=10))
+    return sample_repo, order_repo, production_repo
+
+
+@pytest.fixture
+def ctrls(full_repos):
+    sample_repo, order_repo, production_repo = full_repos
+    sample_ctrl     = SampleController(sample_repo)
+    order_ctrl      = OrderController(sample_repo, order_repo, production_repo)
+    production_ctrl = ProductionController(production_repo, order_repo, sample_repo)
+    release_ctrl    = ReleaseController(order_repo)
+    return sample_ctrl, order_ctrl, production_ctrl, release_ctrl, order_repo
+
+
+# ── MonitoringView ────────────────────────────────────────────
+class TestMonitoringView:
+    def test_shows_order_status_counts(self, capsys, ctrls):
+        sample_ctrl, order_ctrl, _, _, order_repo = ctrls
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        MonitoringView(sample_ctrl, order_repo).show()
+        out = capsys.readouterr().out
+        assert "RESERVED" in out
+        assert "1건" in out
+
+    def test_stock_tag_여유(self, capsys, ctrls):
+        sample_ctrl, _, _, _, order_repo = ctrls
+        MonitoringView(sample_ctrl, order_repo).show()
+        out = capsys.readouterr().out
+        assert "여유" in out
+
+    def test_stock_tag_고갈(self, capsys, full_repos):
+        sample_repo, order_repo, production_repo = full_repos
+        sample_repo.save(Sample(sample_id="S002", name="GaAs", avg_production_time=3.0, yield_rate=0.8, stock=0))
+        sample_ctrl = SampleController(sample_repo)
+        MonitoringView(sample_ctrl, order_repo).show()
+        out = capsys.readouterr().out
+        assert "고갈" in out
+
+    def test_stock_tag_부족(self, capsys, ctrls):
+        sample_ctrl, order_ctrl, _, _, order_repo = ctrls
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=20)  # 재고 10 < 주문 20
+        MonitoringView(sample_ctrl, order_repo).show()
+        out = capsys.readouterr().out
+        assert "부족" in out
+
+    def test_shows_no_samples_message(self, capsys, tmp_path):
+        empty_sample_ctrl = SampleController(SampleRepository(tmp_path / "empty.json"))
+        empty_order_repo  = OrderRepository(tmp_path / "orders.json")
+        MonitoringView(empty_sample_ctrl, empty_order_repo).show()
+        out = capsys.readouterr().out
+        assert "등록된 시료가 없습니다" in out
+
+
+# ── ProductionView ────────────────────────────────────────────
+class TestProductionView:
+    def test_shows_empty_message_when_queue_empty(self, monkeypatch, capsys, ctrls):
+        _, _, production_ctrl, _, _ = ctrls
+        monkeypatch.setattr("builtins.input", lambda _: "")
+        ProductionView(production_ctrl).show()
+        out = capsys.readouterr().out
+        assert "현재 생산 중인 작업이 없습니다" in out
+
+    def test_shows_current_job_info(self, monkeypatch, capsys, ctrls):
+        _, order_ctrl, production_ctrl, _, _ = ctrls
+        order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=100)  # 재고 10 < 주문 100 → PRODUCING
+        order_ctrl.approve(order.order_id)
+        monkeypatch.setattr("builtins.input", lambda _: "")
+        ProductionView(production_ctrl).show()
+        out = capsys.readouterr().out
+        assert "S001" in out
+        assert "생산 수량" in out
+
+    def test_complete_job_prints_success(self, monkeypatch, capsys, ctrls):
+        _, order_ctrl, production_ctrl, _, _ = ctrls
+        order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=100)
+        order_ctrl.approve(order.order_id)
+        monkeypatch.setattr("builtins.input", lambda _: order.order_id)
+        ProductionView(production_ctrl).show()
+        out = capsys.readouterr().out
+        assert "✔" in out
+
+    def test_complete_job_wrong_id_shows_error(self, monkeypatch, capsys, ctrls):
+        _, order_ctrl, production_ctrl, _, _ = ctrls
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=100)
+        order_ctrl.approve(order_ctrl.list_reserved()[0].order_id if order_ctrl.list_reserved() else "")
+        monkeypatch.setattr("builtins.input", lambda _: "WRONG_ID")
+        ProductionView(production_ctrl).show()
+        out = capsys.readouterr().out
+        assert "✖" in out
+
+
+# ── ReleaseView ───────────────────────────────────────────────
+class TestReleaseView:
+    def test_shows_empty_message_when_no_confirmed(self, monkeypatch, capsys, ctrls):
+        _, _, _, release_ctrl, _ = ctrls
+        monkeypatch.setattr("builtins.input", lambda _: "")
+        ReleaseView(release_ctrl).show()
+        out = capsys.readouterr().out
+        assert "출고 대기 중인 주문이 없습니다" in out
+
+    def test_release_success_prints_confirmation(self, monkeypatch, capsys, ctrls):
+        _, order_ctrl, _, release_ctrl, _ = ctrls
+        order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)  # 재고 10 >= 5 → CONFIRMED
+        order_ctrl.approve(order.order_id)
+        inputs = iter(["1"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        ReleaseView(release_ctrl).show()
+        out = capsys.readouterr().out
+        assert "✔" in out
+
+    def test_invalid_release_number_shows_error(self, monkeypatch, capsys, ctrls):
+        _, order_ctrl, _, release_ctrl, _ = ctrls
+        order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        order_ctrl.approve(order.order_id)
+        monkeypatch.setattr("builtins.input", lambda _: "99")
+        ReleaseView(release_ctrl).show()
+        out = capsys.readouterr().out
+        assert "올바른 번호를 선택해주세요" in out
+
+    def test_non_integer_release_number_shows_error(self, monkeypatch, capsys, ctrls):
+        _, order_ctrl, _, release_ctrl, _ = ctrls
+        order = order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        order_ctrl.approve(order.order_id)
+        monkeypatch.setattr("builtins.input", lambda _: "abc")
+        ReleaseView(release_ctrl).show()
+        out = capsys.readouterr().out
+        assert "✖" in out
+
+    def test_ask_int_retries_on_invalid_input(self, monkeypatch, capsys, order_ctrl):
+        # 수량 입력 시 문자 입력 → 재시도 → 정상 입력
+        inputs = iter(["1", "S001", "홍길동", "abc", "5", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        OrderView(order_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "숫자를 입력해주세요" in out
+
+    def test_non_integer_order_number_shows_error(self, monkeypatch, capsys, order_ctrl):
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        inputs = iter(["2", "abc", "0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+        OrderView(order_ctrl).menu()
+        out = capsys.readouterr().out
+        assert "✖" in out
