@@ -10,6 +10,7 @@
 |------|------|
 | 구현 | `repositories/__init__.py` |
 | 구현 | `repositories/json_repository.py` |
+| 구현 | `repositories/base_repository.py` |
 | 구현 | `repositories/sample_repository.py` |
 | 구현 | `repositories/order_repository.py` |
 | 구현 | `repositories/production_repository.py` |
@@ -24,14 +25,18 @@
 json_repository.py          # load / save 공통 유틸
         ▲
         │ 사용
-┌───────┴──────────────────────────────────┐
-│  SampleRepository     data/samples.json  │
-│  OrderRepository      data/orders.json   │
-│  ProductionRepository data/production_queue.json │
-└──────────────────────────────────────────┘
+base_repository.py          # find_all / find_by_id / save(upsert) 추상 베이스
+        ▲
+        │ 상속
+┌───────┴────────────────────────────────────────┐
+│  SampleRepository       data/samples.json      │  ← _to_dict / _from_dict / _id_of 만 구현
+│  OrderRepository        data/orders.json       │  ← _to_dict / _from_dict / _id_of + find_by_status
+│  ProductionRepository   data/production_queue.json │  ← 큐 특화 (BaseRepository 미사용)
+└────────────────────────────────────────────────┘
 ```
 
-- 각 Repository는 `json_repository`의 `load` / `save`를 호출해 `data/*.json`을 관리한다.
+- `SampleRepository` / `OrderRepository`는 `BaseRepository`를 상속하여 공통 CRUD를 재사용한다.
+- `ProductionRepository`는 큐(FIFO) 특화 구조로 `BaseRepository`를 사용하지 않는다.
 - 변경(추가·수정·삭제) 발생 즉시 저장한다.
 - 테스트에서는 `tmp_path` fixture를 사용해 실제 `data/` 디렉터리를 건드리지 않는다.
 
@@ -61,10 +66,10 @@ class TestJsonRepository:
         result = load(filepath)
         assert result == data
 
-    def test_load_returns_empty_dict_when_file_not_exists(self, tmp_path):
+    def test_load_returns_empty_list_when_file_not_exists(self, tmp_path):
         filepath = tmp_path / "nonexistent.json"
         result = load(filepath)
-        assert result == {}
+        assert result == []
 
     def test_save_creates_file_with_indent(self, tmp_path):
         filepath = tmp_path / "test.json"
@@ -236,26 +241,61 @@ import json
 from pathlib import Path
 
 
-def load(filepath) -> dict:
+def load(filepath) -> list:
     path = Path(filepath)
     if not path.exists():
-        return {}
+        return []
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
-def save(filepath, data: dict) -> None:
+def save(filepath, data) -> None:
     path = Path(filepath)
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 ```
 
+### `repositories/base_repository.py`
+
+`SampleRepository` / `OrderRepository`의 공통 패턴을 추출한 추상 베이스 클래스.
+
+```python
+from abc import ABC, abstractmethod
+from pathlib import Path
+from repositories.json_repository import load
+from repositories.json_repository import save as json_save
+
+
+class BaseRepository(ABC):
+    def __init__(self, filepath):
+        self._filepath = Path(filepath)
+
+    def find_all(self) -> list:
+        return [self._from_dict(d) for d in load(self._filepath)]
+
+    def find_by_id(self, entity_id: str):
+        return next((e for e in self.find_all() if self._id_of(e) == entity_id), None)
+
+    def save(self, entity) -> None:
+        all_entities = self.find_all()
+        updated = [e for e in all_entities if self._id_of(e) != self._id_of(entity)]
+        updated.append(entity)
+        json_save(self._filepath, [self._to_dict(e) for e in updated])
+
+    @abstractmethod
+    def _id_of(self, entity) -> str: ...
+
+    @abstractmethod
+    def _to_dict(self, entity) -> dict: ...
+
+    @abstractmethod
+    def _from_dict(self, d: dict): ...
+```
+
 ### `repositories/sample_repository.py`
 
-- `find_all() -> list[Sample]` : 전체 시료 목록 반환
-- `find_by_id(sample_id) -> Sample | None` : ID로 단일 조회
-- `save(sample)` : 추가 또는 덮어쓰기 후 즉시 저장
+`BaseRepository` 상속 — `_id_of`, `_to_dict`, `_from_dict`만 구현.
 
 **직렬화 규칙 (`Sample` ↔ dict)**
 
@@ -273,10 +313,7 @@ Sample(sample_id=d["sample_id"], name=d["name"],
 
 ### `repositories/order_repository.py`
 
-- `find_all() -> list[Order]`
-- `find_by_id(order_id) -> Order | None`
-- `find_by_status(status: OrderStatus) -> list[Order]`
-- `save(order)` : 추가 또는 덮어쓰기 후 즉시 저장
+`BaseRepository` 상속 — `find_by_status`만 추가 구현.
 
 **직렬화 규칙 (`Order` ↔ dict)**
 
