@@ -274,8 +274,9 @@ python tools/dummy_data.py
 
 ### 체크리스트
 
-- [ ] 시료·주문 더미 데이터 생성 구현
-- [ ] `data/*.json` 저장 동작 확인
+- [x] 시료·주문 더미 데이터 생성 구현
+- [x] `data/*.json` 저장 동작 확인
+- [x] `tests/test_dummy_data.py` 작성 및 통과
 
 ---
 
