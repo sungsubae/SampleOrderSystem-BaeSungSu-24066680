@@ -190,6 +190,15 @@ class TestMonitoringView:
         assert "RESERVED" in out
         assert "1건" in out
 
+    def test_shows_order_details_in_list(self, capsys, ctrls):
+        sample_ctrl, order_ctrl, _, _, order_repo = ctrls
+        order_ctrl.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        MonitoringView(sample_ctrl, order_repo).show()
+        out = capsys.readouterr().out
+        assert "홍길동" in out
+        assert "S001" in out
+        assert "5" in out
+
     def test_stock_tag_여유(self, capsys, ctrls):
         sample_ctrl, _, _, _, order_repo = ctrls
         MonitoringView(sample_ctrl, order_repo).show()

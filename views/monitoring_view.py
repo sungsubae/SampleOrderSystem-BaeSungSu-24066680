@@ -19,8 +19,13 @@ class MonitoringView:
         section("주문 현황")
         for status in [OrderStatus.RESERVED, OrderStatus.PRODUCING,
                        OrderStatus.CONFIRMED, OrderStatus.RELEASE]:
-            count = len(self._order_repo.find_by_status(status))
-            print(f"  {status.value:<12} {count}건")
+            orders = self._order_repo.find_by_status(status)
+            print(f"\n  ▶ {status.value}  ({len(orders)}건)")
+            if orders:
+                print(f"  {col('주문ID',12)} {col('시료ID',8)} {col('고객명',12)} {'수량':>5}")
+                divider()
+                for o in orders:
+                    print(f"  {col(o.order_id[:8],12)} {col(o.sample_id,8)} {col(o.customer,12)} {o.quantity:>5}")
 
     def _show_stock_status(self):
         section("재고 현황")
