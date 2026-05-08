@@ -1,5 +1,5 @@
 from controllers.release_controller import ReleaseController
-from views.common import header, section, divider, success, error, ask
+from views.common import header, section, divider, success, error, ask, col
 
 
 class ReleaseView:
@@ -13,10 +13,10 @@ class ReleaseView:
         if not confirmed:
             print("  출고 대기 중인 주문이 없습니다.")
             return
-        print(f"  {'No':<5} {'주문ID':<12} {'시료ID':<8} {'고객명':<12} {'수량':>5}")
+        print(f"  {col('No',5)} {col('주문ID',12)} {col('시료ID',8)} {col('고객명',12)} {'수량':>5}")
         divider()
         for i, o in enumerate(confirmed, 1):
-            print(f"  [{i}]  {o.order_id[:8]:<12} {o.sample_id:<8} {o.customer:<12} {o.quantity:>5}")
+            print(f"  [{i}]  {col(o.order_id[:8],12)} {col(o.sample_id,8)} {col(o.customer,12)} {o.quantity:>5}")
         print()
         try:
             idx = int(ask("번호 선택 >")) - 1

@@ -2,7 +2,7 @@ from colorama import Fore
 from controllers.sample_controller import SampleController
 from repositories.order_repository import OrderRepository
 from models.order import OrderStatus
-from views.common import header, section, divider
+from views.common import header, section, divider, col
 
 
 class MonitoringView:
@@ -32,12 +32,12 @@ class MonitoringView:
             o for o in self._order_repo.find_all()
             if o.status in (OrderStatus.RESERVED, OrderStatus.PRODUCING)
         ]
-        print(f"  {'ID':<12} {'이름':<14} {'재고':>5}   주문 대비")
+        print(f"  {col('ID',12)} {col('이름',14)} {'재고':>5}   주문 대비")
         divider()
         for s in samples:
             demand = sum(o.quantity for o in active_orders if o.sample_id == s.sample_id)
             tag, color = self._stock_tag(s.stock, demand)
-            print(f"  {s.sample_id:<12} {s.name:<14} {s.stock:>5}   {color}{tag}{Fore.RESET}")
+            print(f"  {col(s.sample_id,12)} {col(s.name,14)} {s.stock:>5}   {color}{tag}{Fore.RESET}")
 
     @staticmethod
     def _stock_tag(stock: int, demand: int) -> tuple[str, str]:

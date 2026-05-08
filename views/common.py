@@ -62,5 +62,15 @@ def ask_float(prompt: str) -> float:
             error("숫자를 입력해주세요.")
 
 
+def col(s: str, width: int, align: str = "<") -> str:
+    """전각 문자(한글)를 고려한 컬럼 포맷팅."""
+    pad = max(0, width - _display_len(s))
+    if align == ">":
+        return " " * pad + s
+    if align == "^":
+        return " " * (pad // 2) + s + " " * (pad - pad // 2)
+    return s + " " * pad
+
+
 def menu_item(num: int | str, label: str):
     print(f"  {Fore.CYAN}[{num}]{Style.RESET_ALL} {label}")

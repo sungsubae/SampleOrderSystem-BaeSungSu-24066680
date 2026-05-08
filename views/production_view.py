@@ -1,5 +1,5 @@
 from controllers.production_controller import ProductionController
-from views.common import header, section, divider, success, error, ask
+from views.common import header, section, divider, success, error, ask, col
 
 
 class ProductionView:
@@ -29,10 +29,10 @@ class ProductionView:
         if not queue:
             print("  대기 중인 작업이 없습니다.")
             return
-        print(f"  {'순서':<5} {'주문 ID':<14} {'시료 ID':<10} {'생산 수량':>8}  {'예상 시간':>8}")
+        print(f"  {col('순서',5)} {col('주문 ID',14)} {col('시료 ID',10)} {'생산 수량':>8}  {'예상 시간':>8}")
         divider()
         for i, job in enumerate(queue, 1):
-            print(f"  [{i}]   {job.order_id[:8]:<14} {job.sample_id:<10} {job.actual_production:>8}  {job.total_time:>7.1f}h")
+            print(f"  [{i}]   {col(job.order_id[:8],14)} {col(job.sample_id,10)} {job.actual_production:>8}  {job.total_time:>7.1f}h")
 
     def _handle_complete(self):
         if self._ctrl.get_current_job() is None:
