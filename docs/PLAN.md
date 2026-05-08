@@ -232,6 +232,7 @@ View는 입력 수집과 결과 출력만 담당한다. 비즈니스 로직은 C
 - [ ] `monitoring_view.py` 구현
 - [ ] `production_view.py` 구현
 - [ ] `release_view.py` 구현
+- [ ] `tests/test_views.py` 케이스 추가 및 통과
 
 ---
 
