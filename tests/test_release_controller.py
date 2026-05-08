@@ -78,3 +78,12 @@ class TestRelease:
         ctrl = ReleaseController(order_repo=order_repo)
         with pytest.raises(ValueError):
             ctrl.release(order.order_id)
+
+    def test_release_does_not_change_stock(self, confirmed_order, repos):
+        """CONFIRMED 시 이미 재고가 차감되었으므로 RELEASE 시 추가 차감 없음."""
+        sample_repo, _, _ = repos
+        order, ctrl = confirmed_order
+        stock_after_confirm = sample_repo.find_by_id("S001").stock  # approve 시 이미 차감
+        ctrl.release(order.order_id)
+        stock_after_release = sample_repo.find_by_id("S001").stock
+        assert stock_after_release == stock_after_confirm

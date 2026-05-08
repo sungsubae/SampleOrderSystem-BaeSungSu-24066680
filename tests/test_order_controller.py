@@ -116,6 +116,29 @@ class TestApproveWithSufficientStock:
         queue = ctrl_full._production_repo.load()
         assert queue.is_empty()
 
+    def test_approve_sufficient_stock_decrements_stock(self, ctrl_full, tmp_path):
+        sample_repo = SampleRepository(tmp_path / "samples.json")
+        sample = sample_repo.find_by_id("S001")
+        sample.stock = 10
+        sample_repo.save(sample)
+        order = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=5)
+        ctrl_full.approve(order.order_id)
+        updated_sample = sample_repo.find_by_id("S001")
+        assert updated_sample.stock == 5  # 10 - 5
+
+    def test_approve_second_order_sees_reduced_stock(self, ctrl_full, tmp_path):
+        """첫 번째 승인 후 재고가 차감되어 두 번째 주문이 PRODUCING으로 전환되는지 확인."""
+        sample_repo = SampleRepository(tmp_path / "samples.json")
+        sample = sample_repo.find_by_id("S001")
+        sample.stock = 10
+        sample_repo.save(sample)
+        order_a = ctrl_full.reserve(sample_id="S001", customer="홍길동", quantity=8)
+        order_b = ctrl_full.reserve(sample_id="S001", customer="이순신", quantity=8)
+        ctrl_full.approve(order_a.order_id)  # stock 10 → 2
+        ctrl_full.approve(order_b.order_id)  # stock 2 < 8 → PRODUCING
+        assert ctrl_full._order_repo.find_by_id(order_a.order_id).status == OrderStatus.CONFIRMED
+        assert ctrl_full._order_repo.find_by_id(order_b.order_id).status == OrderStatus.PRODUCING
+
 
 # ── approve (재고 부족) ───────────────────────────────────────
 class TestApproveWithInsufficientStock:
