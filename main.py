@@ -12,12 +12,13 @@ from views.main_view import MainView
 DATA_DIR = Path("data")
 
 
-def build_main_view() -> MainView:
-    DATA_DIR.mkdir(exist_ok=True)
+def build_main_view(data_dir: Path = DATA_DIR) -> MainView:
+    data_dir = Path(data_dir)
+    data_dir.mkdir(exist_ok=True)
 
-    sample_repo     = SampleRepository(DATA_DIR / "samples.json")
-    order_repo      = OrderRepository(DATA_DIR / "orders.json")
-    production_repo = ProductionRepository(DATA_DIR / "production_queue.json")
+    sample_repo     = SampleRepository(data_dir / "samples.json")
+    order_repo      = OrderRepository(data_dir / "orders.json")
+    production_repo = ProductionRepository(data_dir / "production_queue.json")
 
     sample_ctrl     = SampleController(sample_repo)
     order_ctrl      = OrderController(sample_repo, order_repo, production_repo)
